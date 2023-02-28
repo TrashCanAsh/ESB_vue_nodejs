@@ -1,7 +1,6 @@
 {
   "name": "esbnode",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,10 +13,20 @@
     "boom": "^7.3.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
+    "debug": "^4.3.4",
+    "depd": "^2.0.0",
+    "ee-first": "^1.1.1",
+    "encodeurl": "^1.0.2",
+    "escape-html": "^1.0.3",
     "express": "^4.18.2",
     "express-jwt": "^8.4.1",
     "express-validator": "^6.15.0",
+    "finalhandler": "^1.2.0",
     "jsonwebtoken": "^9.0.0",
-    "mysql": "^2.18.1"
-  }
+    "merge-descriptors": "^1.0.1",
+    "mysql": "^2.18.1",
+    "on-finished": "^2.4.1"
+  },
+  "devDependencies": {},
+  "description": ""
 }

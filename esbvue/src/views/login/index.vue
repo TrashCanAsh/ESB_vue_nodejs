@@ -143,9 +143,6 @@ export default {
     handleSignup() {
       this.loading = true
       this.$router.push('/signup')
-        .then(() => {
-          this.loading = false
-        })
     },
     getOtherQuery(query) {
       return Object.keys(query).reduce((acc, cur) => {

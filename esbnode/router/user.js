@@ -30,6 +30,7 @@ router.post(
     } else {
       //正常逻辑
       let { username, password } = req.body
+      //密码MD5加盐处理
       password = md5(password + PWD_SALT)
 
       login(username, password).then(user => {
@@ -65,6 +66,28 @@ router.get('/info', function(req, res) {
     new Result('用户信息解析失败').fail(res)
   }
 })
-//
+//注册请求处理（/user/signup）
+router.get(
+  '/signup', 
+  [
+    //express-validator
+    //验证表单参数正确性
+    body('username').isString().withMessage('username类型不正确'),
+    body('password').isString().withMessage('password类型不正确')
+  ],
+  function(req, res, next) {
+    //表单参数异常处理
+    const err = validationResult(req)
+    if (!err.isEmpty()) {
+      const [{ msg }] = err.errors
+      next(boom.badRequest(msg))
+    } else {
+      //正常逻辑
+      let { username, password } = req.body
+
+      
+    }
+  }
+)
 
 module.exports = router

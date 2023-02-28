@@ -16,6 +16,14 @@ export function getInfo(token) {
   })
 }
 
+export function signup(data) {
+  return request({
+    url: '/user/signup',
+    method: 'post',
+    data
+  })
+}
+
 export function logout() {
   return request({
     url: '/user/logout',

@@ -11,6 +11,18 @@ function findUser(username) {
   const sql = `select iduser, name, username, role, institute, phonenumber from user where username='${username}'`
   return queryOne(sql)
 }
+//
+function signup(username, password) {
+  const sql = `select * from user where username=${username}`
+  querySql(sql).then(user => {
+    if (!user || user.length === 0)
+    {
+      return new Promise
+    } else {
+
+    }
+  })
+}
   
 module.exports = {
   login,
