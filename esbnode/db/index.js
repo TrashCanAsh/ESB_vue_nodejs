@@ -1,6 +1,7 @@
 const mysql = require('mysql')
 const config = require('./config')
 const { DEBUG } = require('../utils/constant')
+const { isObject } = require('../utils')
 
 //数据库连接设置，参数来自./config
 function connect() {
@@ -18,12 +19,12 @@ function querySql(sql) {
   DEBUG && console.log(sql)
   return new Promise((resolve, reject) => {
     try {
-      DEBUG && conn.query(sql, (err, results) => {
+      conn.query(sql, (err, results) => {
         if (err) {
-          DEBUG && console.log('查询失败，原因:' + JSON.stringify(err))
+          DEBUG && console.log('操作失败，原因:' + JSON.stringify(err))
           reject(err)
         } else {
-          DEBUG && console.log('查询成功', JSON.stringify(results))
+          DEBUG && console.log('操作成功', JSON.stringify(results))
           resolve(results)
         }
       })
@@ -50,25 +51,127 @@ function queryOne(sql){
       })
   })
 }
-//
-function queryLast(tablename) {
+
+function insert(model, tableName) {
   return new Promise((resolve, reject) => {
-    querySql(`select * from '${tablename}' order by id'${tablename}' desc limit 1`)
-      .then(results => {
-        if (results && results.length > 0) {
-          resolve(results[0])
-        } else {
-          resolve(null)
+    if (!isObject(model)) {
+      reject(new Error('插入数据库失败，插入数据非对象'))
+    } else {
+      const keys = []
+      const values = []
+      Object.keys(model).forEach(key => {
+        if (model.hasOwnProperty(key)) {
+          keys.push(`\`${key}\``)
+          values.push(`'${model[key]}'`)
         }
       })
-      .catch(error => {
-        reject(error)
-      })
+      if (keys.length > 0 && values.length > 0) {
+        let sql = `INSERT INTO \`${tableName}\` (`
+        const keysString = keys.join(',')
+        const valuesString = values.join(',')
+        sql = `${sql}${keysString}) VALUES (${valuesString})`
+        debug && console.log(sql)
+        const conn = connect()
+        try {
+          conn.query(sql, (err, result) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve(result)
+            }
+          })
+        } catch (e) {
+          reject(e)
+        } finally {
+          conn.end()
+        }
+      } else {
+        reject(new Error('插入数据库失败，对象中没有任何属性'))
+      }
+    }
   })
 }
+
+function update(model, tableName, where) {
+  return new Promise((resolve, reject) => {
+    if (!isObject(model)) {
+      reject(new Error('插入数据库失败，插入数据非对象'))
+    } else {
+      const entry = []
+      Object.keys(model).forEach(key => {
+        if (model.hasOwnProperty(key)) {
+          entry.push(`\`${key}\`='${model[key]}'`)
+        }
+      })
+      if (entry.length > 0) {
+        let sql = `UPDATE \`${tableName}\` SET`
+        sql = `${sql} ${entry.join(',')} ${where}`
+        debug && console.log(sql)
+        const conn = connect()
+        try {
+          conn.query(sql, (err, result) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve(result)
+            }
+          })
+        } catch (e) {
+          reject(e)
+        } finally {
+          conn.end()
+        }
+      }
+    }
+  })
+}
+
+function and(where, k, v) {
+  if (where === 'where') {
+    return `${where} \`${k}\`='${v}'`
+  } else {
+    return `${where} and \`${k}\`='${v}'`
+  }
+}
+
+function andLike(where, k, v) {
+  if (where === 'where') {
+    return `${where} \`${k}\` like '%${v}%'`
+  } else {
+    return `${where} and \`${k}\` like '%${v}%'`
+  }
+}
+
+function andLoc(where, k, lowv, highv) {
+  if (where === 'where') {
+    return `${where} \`${k}\` >= '${lowv}' and \`${k}\` <= '${highv}'`
+  } else {
+    return `${where} and \`${k}\` >= '${lowv}' and \`${k}\` <= '${highv}'`
+  }
+}
+
+function andTime(where, k, start, end) {
+  if(!start) {
+    start = '1970/01/01'
+  }
+  if(!end) {
+    end = '2099/01/01'
+  }
+  if (where === 'where') {
+    return `${where} \`${k}\` >= '${start}' and \`${k}\` <= '${end}'`
+  } else {
+    return `${where} and \`${k}\` >= '${start}' and \`${k}\` <= '${end}'`
+  }
+}
+
 
 module.exports = {
   querySql,
   queryOne,
-  queryLast
+  insert,
+  update,
+  and,
+  andLike,
+  andLoc,
+  andTime
 }

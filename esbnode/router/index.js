@@ -1,6 +1,7 @@
 const express = require('express')
 const boom = require('boom')
 const userRouter = require('./user')
+const sampleRouter = require('./sample')
 const {
   CODE_ERROR
 } = require('../utils/constant')
@@ -16,8 +17,10 @@ router.get('/', function(req, res) {
   res.send('欢迎进入后端')
 })
 
-// 通过 userRouter 来处理 /user 路由，对路由处理进行解耦
+// 用户相关业务逻辑处理
 router.use('/user', userRouter)
+// 样品信息相关业务逻辑处理
+router.use('/sample', sampleRouter)
 
 /**
  * 集中处理404请求的中间件

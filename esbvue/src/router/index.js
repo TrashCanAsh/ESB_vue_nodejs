@@ -95,26 +95,55 @@ export const asyncRoutes = [
     path: '/samples',
     component: Layout,
     redirect: '/samples/searchsample',
-    meta: { title: '样品管理', icon: 'documentation', roles: ['admin'] },
+    meta: { title: '样品管理', icon: 'documentation', roles: ['user', 'admin'] },
     children: [
       // 添加样品界面
       {
-        name: 'samples_insert',
+        name: 'insertsample',
         path: '/samples/insertsample',
         component: () => import('@/views/samples/insertsample'),
         meta: { title: '添加样品', icon: 'edit', roles: ['admin'] }
       },
       // 查询样品界面
       {
-        name: 'samples_search',
+        name: 'searchsample',
         path: '/samples/searchsample',
-        component: () => import('@/views/samples/insertsample'),
-        meta: { title: '查询样品', icon: 'edit', roles: ['admin'] }
+        component: () => import('@/views/samples/searchsample'),
+        meta: { title: '查询样品', icon: 'search', roles: ['user', 'admin'] }
       }
     ]
   },
   // 样品借还界面
-
+  {
+    name: 'samplerequests',
+    path: '/samplerequests',
+    component: Layout,
+    redirect: '/samplerequests/searchrequest',
+    meta: { title: '样品借还', icon: 'education', roles: ['user', 'admin'] },
+    children: [
+      //
+      {
+        name: 'searchrequest',
+        path: '/samplerequests/searchrequest',
+        component: () => import('@/views/samplerequests/searchrequest'),
+        meta: { title: '查询申请', icon: 'search', roles: ['user', 'admin'] }
+      },
+      //
+      {
+        name: 'uploadrequest',
+        path: '/samplerequests/uploadrequest',
+        component: () => import('@/views/samplerequests/searchrequest'),
+        meta: { title: '填写申请', icon: 'search', roles: ['user', 'admin'] }
+      },
+      //
+      {
+        name: 'applyrequest',
+        path: '/samplerequests/applyrequest',
+        component: () => import('@/views/samplerequests/searchrequest'),
+        meta: { title: '审批申请', icon: 'search', roles: ['admin'] }
+      }
+    ]
+  },
   // 人员管理界面
 
   // 个人信息设置界面

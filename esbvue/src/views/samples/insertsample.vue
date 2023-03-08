@@ -1,5 +1,7 @@
 <template>
-  <h1>123</h1>
+  <el-form>
+
+  </el-form>
 </template>
 
 <script>

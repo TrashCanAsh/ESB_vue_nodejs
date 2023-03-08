@@ -90,10 +90,9 @@ export default {
       }
     }
     const validatePassword2 = (rule, value, callback) => {
-      if(!value || value != this.signupForm.password)
-      {
+      if (!value || value !== this.signupForm.password) {
         callback(new Error('密码输入不一致'))
-      }else {
+      } else {
         callback()
       }
     }
@@ -156,6 +155,11 @@ export default {
         if (valid) {
           this.loading = true
           this.$store.dispatch('user/signup', this.signupForm)
+            .then(() => {
+              this.$alert('注册成功 正在返回登陆界面', '提示', {
+                confirmButtonText: '确定'
+              })
+            })
             .then(() => {
               this.$router.push({ path: '/', query: this.otherQuery })
               this.loading = false

@@ -1,7 +1,7 @@
 //处理用户相关的后端逻辑
 const express = require('express')
 const Result = require('../models/Result')
-const { login, findUser } = require('../service/user')
+const { login, findUser, signup, isUserExist, queryLast } = require('../service/user')
 //md5加密与加盐
 const { md5, decode } = require('../utils')
 const { PWD_SALT, PRIVATE_KEY, JWT_EXPIRED } = require('../utils/constant')
@@ -31,7 +31,7 @@ router.post(
       //正常逻辑
       let { username, password } = req.body
       //密码MD5加盐处理
-      password = md5(password + PWD_SALT)
+      password = md5(password + '@' + username + '@' + PWD_SALT)
 
       login(username, password).then(user => {
         if (!user || user.length === 0) {
@@ -67,7 +67,7 @@ router.get('/info', function(req, res) {
   }
 })
 //注册请求处理（/user/signup）
-router.get(
+router.post(
   '/signup', 
   [
     //express-validator
@@ -84,8 +84,24 @@ router.get(
     } else {
       //正常逻辑
       let { username, password } = req.body
-
-      
+      //密码MD5加盐处理
+      password = md5(password + '@' + username + '@' + PWD_SALT)
+      //查询用户名是否存在
+      isUserExist(username).then(user => {
+        if (user) {
+          new Result('注册失败：用户名已存在').fail(res)
+        } else {
+          //获取用户表中最后一个用户的ID值，新用户的ID值为该值+1
+          queryLast('user').then(result => {
+            let num = 0
+            //当用户表中没有数据时（result为null），则直接赋值为1
+            num = +(result ? result.iduser : 0) + 1
+            signup(username, password, num).then(result => {
+              new Result('注册成功').success(res)
+            })
+          })
+        }
+      })
     }
   }
 )

@@ -12,19 +12,25 @@ function findUser(username) {
   return queryOne(sql)
 }
 //
-function signup(username, password) {
-  const sql = `select * from user where username=${username}`
-  querySql(sql).then(user => {
-    if (!user || user.length === 0)
-    {
-      return new Promise
-    } else {
+function isUserExist(username) {
+  const sql = `select * from user where username='${username}'`
+  return queryOne(sql)
+}
+//
+function signup(username, password, num) {
+  const sql = `insert into user (iduser, name, username, password, role) values (${num}, '${username}', '${username}', '${password}', 'user')`
+  return querySql(sql)
+}
 
-    }
-  })
+function queryLast(tablename) {
+  const sql = `select * from ${tablename} order by id${tablename} desc limit 1`
+  return queryOne(sql)
 }
   
 module.exports = {
   login,
-  findUser
+  findUser,
+  signup,
+  isUserExist,
+  queryLast
 }
