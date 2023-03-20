@@ -57,6 +57,7 @@ function insert(model, tableName) {
     if (!isObject(model)) {
       reject(new Error('插入数据库失败，插入数据非对象'))
     } else {
+      DEBUG && console.log(model)
       const keys = []
       const values = []
       Object.keys(model).forEach(key => {
@@ -70,7 +71,7 @@ function insert(model, tableName) {
         const keysString = keys.join(',')
         const valuesString = values.join(',')
         sql = `${sql}${keysString}) VALUES (${valuesString})`
-        debug && console.log(sql)
+        DEBUG && console.log(sql)
         const conn = connect()
         try {
           conn.query(sql, (err, result) => {
@@ -106,7 +107,7 @@ function update(model, tableName, where) {
       if (entry.length > 0) {
         let sql = `UPDATE \`${tableName}\` SET`
         sql = `${sql} ${entry.join(',')} ${where}`
-        debug && console.log(sql)
+        DEBUG && console.log(sql)
         const conn = connect()
         try {
           conn.query(sql, (err, result) => {
@@ -128,25 +129,25 @@ function update(model, tableName, where) {
 
 function and(where, k, v) {
   if (where === 'where') {
-    return `${where} \`${k}\`='${v}'`
+    return `${where} \`${k}\`='${v}'`;
   } else {
-    return `${where} and \`${k}\`='${v}'`
+    return `${where} and \`${k}\`='${v}'`;
   }
 }
 
 function andLike(where, k, v) {
   if (where === 'where') {
-    return `${where} \`${k}\` like '%${v}%'`
+    return `${where} \`${k}\` like '%${v}%'`;
   } else {
-    return `${where} and \`${k}\` like '%${v}%'`
+    return `${where} and \`${k}\` like '%${v}%'`;
   }
 }
 
 function andLoc(where, k, lowv, highv) {
   if (where === 'where') {
-    return `${where} \`${k}\` >= '${lowv}' and \`${k}\` <= '${highv}'`
+    return `${where} \`${k}\` >= '${lowv}' and \`${k}\` <= '${highv}'`;
   } else {
-    return `${where} and \`${k}\` >= '${lowv}' and \`${k}\` <= '${highv}'`
+    return `${where} and \`${k}\` >= '${lowv}' and \`${k}\` <= '${highv}'`;
   }
 }
 
@@ -157,10 +158,11 @@ function andTime(where, k, start, end) {
   if(!end) {
     end = '2099/01/01'
   }
+  
   if (where === 'where') {
-    return `${where} \`${k}\` >= '${start}' and \`${k}\` <= '${end}'`
+    return `${where} \`${k}\` >= '${start}' and \`${k}\` <= '${end}'`;
   } else {
-    return `${where} and \`${k}\` >= '${start}' and \`${k}\` <= '${end}'`
+    return `${where} and \`${k}\` >= '${start}' and \`${k}\` <= '${end}'`;
   }
 }
 

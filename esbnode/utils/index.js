@@ -10,7 +10,7 @@ function md5(s) {
 const jwt = require('jsonwebtoken')
 const { PRIVATE_KEY } = require('./constant')
 
-function decode(req) {
+function decoded(req) {
   const authorization = req.get('Authorization')
   let token = ''
   if (authorization.indexOf('Bearer') >= 0) {
@@ -27,6 +27,6 @@ function isObject(o) {
 
 module.exports = {
   md5,
-  decode,
+  decoded,
   isObject
 }

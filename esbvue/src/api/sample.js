@@ -1,5 +1,29 @@
 import request from '../utils/request'
 
+export function createSample(sample) {
+  return request({
+    url: '/sample/create',
+    method: 'post',
+    data: sample
+  })
+}
+
+export function updateSample(sample) {
+  return request({
+    url: '/sample/update',
+    method: 'post',
+    data: sample
+  })
+}
+
+export function getSample(idsamples) {
+  return request({
+    url: '/sample/get',
+    method: 'get',
+    params: { idsamples }
+  })
+}
+
 export function getCategory() {
   return request({
     url: '/sample/category',
@@ -15,10 +39,10 @@ export function listSample(params) {
   })
 }
 
-export function deleteSample(fileName) {
+export function deleteSample(idsamples) {
   return request({
     url: '/sample/delete',
     method: 'get',
-    params: { fileName }
+    params: { idsamples }
   })
 }

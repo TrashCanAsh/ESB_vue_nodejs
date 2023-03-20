@@ -1,6 +1,7 @@
 //查询样品信息相关模块
 
 const db=require('../db')
+const Sample = require('../models/Sample')
 const { DEBUG } = require('../utils/constant')
 
 //获取样品种类数据列表（从view中获取）
@@ -36,11 +37,11 @@ async function listSample(query) {
   const offset = (page - 1) * pageSize
   let sampleSql = `select idsamples, name, category, samplingtime, concat('(', longitude, ', ', latitude, ')') as samplinglocation, state, locationofstorage, comment from samples`
   let where = 'where'
-  name && (where = db.andLike(where, 'name,', name))
-  category && (where = db.and(where, 'category', category))
-  (timeStart || timeEnd) && (where = db.andTime(where, 'samplingtime', timeStart, timeEnd))
-  NWlo && SElo && (where = db.andLoc(where, 'longitude', NWlo, SElo))
-  NWla && SEla && (where = db.andLoc(where, 'latitude', NWla, SEla))
+  name && (where = db.andLike(where, 'name', name));
+  category && (where = db.and(where, 'category', category));
+  (timeStart || timeEnd) && (where = db.andTime(where, 'samplingtime', timeStart, timeEnd));
+  NWlo && SElo && (where = db.andLoc(where, 'longitude', NWlo, SElo));
+  NWla && SEla && (where = db.andLoc(where, 'latitude', NWla, SEla));
   if (where !== 'where') {
     sampleSql = `${sampleSql} ${where}`
   }
@@ -62,14 +63,12 @@ async function listSample(query) {
 }
 
 //删除某一样品信息
-function deleteSample(fileName) {
+function deleteSample(idsamples) {
   return new Promise(async (resolve, reject) => {
-    let book = await getBook(fileName)
-    if (book) {
-      const bookObj = new Book(null, book)
-      const sql = `delete from book where fileName='${fileName}'`
+    let sample = await getSample(idsamples)
+    if (sample) {
+      const sql = `delete from samples where idsamples='${idsamples}'`
       db.querySql(sql).then(() => {
-        bookObj.reset()
         resolve()
       })
     } else {
@@ -78,9 +77,85 @@ function deleteSample(fileName) {
   })
 }
 
+//检查样品是否存在
+function exists(sample) {
+  const { name, category, samplingtime, longitude, latitude } = sample
+  const sql = `select * from samples where name='${name}' and category='${category}' and samplingtime='${samplingtime}' and longitude='${longitude}' and latitude='${latitude}'`
+  return db.queryOne(sql)
+}
+//新增样品信息
+function insertSample(sample) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (sample instanceof Sample) {
+        const result = await exists(sample)
+        if (result) {
+          reject(new Error('样品已存在'))
+        } else {
+          if (sample.idsamples < 0) {
+            await queryLast('samples').then(result => {
+              sample.idsamples = +(result ? result.idsamples : 0) + 1
+            })
+          }
+          DEBUG && console.log(sample)
+          await db.insert(sample.toDb(), 'samples')
+          resolve()
+        }
+      } else {
+        reject(new Error('添加的样品对象不合法'))
+      }
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+//
+function getSample(idsamples) {
+  return new Promise(async (resolve, reject) => {
+    const querySql = `select * from samples where idsamples='${idsamples}'`
+    const sample = await db.queryOne(querySql)
+    if (sample) {
+      resolve(sample)
+    } else {
+      reject(new Error('样品信息不存在'))
+    }
+  })
+}
+//
+function updateSample(sample) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (sample instanceof Sample) {
+        const result = await getSample(sample.idsamples)
+        if (result) {
+          sample.categoryindex = result.categoryindex
+          sample.stateindex = result.stateindex
+          sample.state = result.state
+          sample.locationofstorage = result.locationofstorage
+          await db.update(sample.toDb(), 'samples', `where idsamples='${sample.idsamples}'`)
+          resolve()
+        }
+      } else {
+        reject(new Error('添加的样品对象不合法'))
+      }
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
+function queryLast(tablename) {
+  const sql = `select * from ${tablename} order by id${tablename} desc limit 1`
+  return db.queryOne(sql)
+}
+
 
 module.exports = {
   getCategory,
   listSample,
-  deleteSample
+  getSample,
+  deleteSample,
+  insertSample,
+  updateSample,
+  queryLast
 }

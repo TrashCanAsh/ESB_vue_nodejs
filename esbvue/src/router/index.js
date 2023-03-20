@@ -78,7 +78,7 @@ export const constantRoutes = [
         path: 'dashboard',
         component: () => import('@/views/dashboard/index'),
         name: 'Dashboard',
-        meta: { title: '主页', icon: 'dashboard', affix: true }
+        meta: { title: '首页', icon: 'dashboard', affix: true }
       }
     ]
   }
@@ -103,6 +103,14 @@ export const asyncRoutes = [
         path: '/samples/insertsample',
         component: () => import('@/views/samples/insertsample'),
         meta: { title: '添加样品', icon: 'edit', roles: ['admin'] }
+      },
+      //
+      {
+        name: 'updatesample',
+        path: '/samples/updatesample/:idsamples',
+        component: () => import('@/views/samples/updatesample'),
+        hidden: true,
+        meta: { title: '编辑样品', icon: 'edit', roles: ['admin'], activeMenu: '/samples/searchsample' }
       },
       // 查询样品界面
       {

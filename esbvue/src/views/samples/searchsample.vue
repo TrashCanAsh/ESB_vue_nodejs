@@ -1,41 +1,68 @@
 <template>
   <div class="app-container">
     <!--查询模块-->
-    <div class="filter-container" >
-      <el-input
-        v-model="listQuery.name"
-        placeholder="样品名称"
-        style="width: 200px"
-        class="filter-item"
-        clearable
-        @keyup.enter.native="handleFilter"
-        @clear="handleFilter"
-        @blur="handleFilter"
-      />
-      <el-select
-        v-model="listQuery.category"
-        placeholder="分类"
-        clearable
-        class="filter-item"
-        @change="handleFilter"
-      >
-        <el-option
-          v-for="item in categoryList"
-          :key="item.value"
-          :label="item.label + '(' + item.num + ')'"
-          :value="item.label"
-        />
-      </el-select>
-      <el-button
-        v-waves
-        class="filter-item"
-        type="primary"
-        icon="el-icon-search"
-        style="margin-left: 10px"
-        @click="handleFilter"
-      >
-        查询
-      </el-button>
+    <div class="filter-container">
+      <el-form>
+        <el-row>
+          <el-col :span="8">
+            <el-form-item prop="name" label="样品名称：" :label-width="labelWidth">
+              <el-input v-model="listQuery.name" placeholder="样品名称" style="width: 200px" class="filter-item" clearable @keyup.enter.native="handleFilter" @clear="handleFilter" @blur="handleFilter" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item prop="category" label="样品种类：" :label-width="labelWidth">
+              <el-select v-model="listQuery.category" placeholder="分类" clearable class="filter-item" @change="handleFilter">
+                <el-option
+                  v-for="item in categoryList"
+                  :key="item.value"
+                  :label="item.label + '(' + item.num + ')'"
+                  :value="item.label"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item>
+              <el-button class="filter-item" type="primary" icon="el-icon-search" style="margin-left: 10px" @click="handleFilter">查询</el-button>
+            </el-form-item>
+          </el-col>
+          <el-col>
+            <el-collapse>
+              <el-collapse-item>
+                <template slot="title" class="collapse-title">高级搜索</template>
+                <div>
+                  <el-form-item label="采样时间：" :label-width="labelWidth">
+                    <el-col :span="11">
+                      <el-date-picker type="date" placeholder="起始日期" v-model="listQuery.timeStart" value-format="yyyy/MM/dd" style="width: 100%;"></el-date-picker>
+                    </el-col>
+                    <el-col :span="2" align="center">-</el-col>
+                    <el-col :span="11">
+                      <el-date-picker type="date" placeholder="截止日期" v-model="listQuery.timeEnd" value-format="yyyy/MM/dd" style="width: 100%;"></el-date-picker>
+                    </el-col>
+                  </el-form-item>
+                  <el-form-item label="采样地点：" :label-width="labelWidth">
+                    <el-col :span="5">
+                      <el-input placeholder="NW经度" v-model="listQuery.NWlo"></el-input>
+                    </el-col>
+                    <el-col :span="1" align="center">,</el-col>
+                    <el-col :span="5">
+                      <el-input placeholder="NW纬度" v-model="listQuery.NWla"></el-input>
+                    </el-col>
+                    <el-col :span="2" align="center">-</el-col>
+                    <el-col :span="5">
+                      <el-input placeholder="SE经度" v-model="listQuery.SElo"></el-input>
+                    </el-col>
+                    <el-col :span="1" align="center">,</el-col>
+                    <el-col :span="5">
+                      <el-input placeholder="SE纬度" v-model="listQuery.SEla"></el-input>
+                    </el-col>
+                  </el-form-item>
+                </div>
+              </el-collapse-item>
+            </el-collapse>
+          </el-col>
+        </el-row>
+      </el-form>
     </div>
     <!--表格模块-->
     <el-table
@@ -62,6 +89,12 @@
       <el-table-column label="备注" prop="comment">
         <template slot-scope="{ row: { comment }}">
           <span>{{ comment | valueFilter }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作">
+        <template slot-scope="{ row }">
+          <el-button type="text" icon="el-icon-edit" @click="handleUpdate(row)" />
+          <el-button type="text" icon="el-icon-delete" style="color:#f56c6c" @click="handleDelete(row)" />
         </template>
       </el-table-column>
     </el-table>
@@ -192,13 +225,18 @@ export default {
       this.listQuery.page = 1
       this.refresh()
     },
+    handleUpdate(row) {
+      console.log('handleUpdate', row)
+      console.log(`/samples/updatesample/${row.idsamples}`)
+      this.$router.push(`/samples/updatesample/${row.idsamples}`)
+    },
     handleDelete(row) {
       this.$confirm('此操作将永久删除此样品信息，是否继续？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        deleteSample(row.samplename).then(response => {
+        deleteSample(row.idsamples).then(response => {
           this.$notify({
             title: '成功',
             message: response.msg || '删除成功',

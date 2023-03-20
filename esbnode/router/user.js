@@ -3,7 +3,7 @@ const express = require('express')
 const Result = require('../models/Result')
 const { login, findUser, signup, isUserExist, queryLast } = require('../service/user')
 //md5加密与加盐
-const { md5, decode } = require('../utils')
+const { md5, decoded } = require('../utils')
 const { PWD_SALT, PRIVATE_KEY, JWT_EXPIRED } = require('../utils/constant')
 //express-validator，表单验证器，简化POST请求的参数验证
 const { body, validationResult } = require('express-validator')
@@ -52,9 +52,9 @@ router.post(
 )
 //登录请求用户信息（/user/info）
 router.get('/info', function(req, res) {
-  const decoded = decode(req)
-  if (decoded && decoded.username) {
-    findUser(decoded.username).then(user => {
+  const decode = decoded(req)
+  if (decode && decode.username) {
+    findUser(decode.username).then(user => {
       if (user) {
         user.roles = [user.role]
         new Result(user, '获取用户信息成功').success(res)
