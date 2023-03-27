@@ -8,6 +8,14 @@ export function createSample(sample) {
   })
 }
 
+export function multiCreateSample(list) {
+  return request({
+    url: '/sample/multicreate',
+    method: 'post',
+    data: list
+  })
+}
+
 export function updateSample(sample) {
   return request({
     url: '/sample/update',

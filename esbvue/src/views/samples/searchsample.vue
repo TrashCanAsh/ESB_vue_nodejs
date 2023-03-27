@@ -23,40 +23,50 @@
           </el-col>
           <el-col :span="8">
             <el-form-item>
-              <el-button class="filter-item" type="primary" icon="el-icon-search" style="margin-left: 10px" @click="handleFilter">查询</el-button>
+              <el-button class="filter-item" type="primary" :loading="Bloading" icon="el-icon-search" style="margin-left: 10px" @click="handleFilter">查询</el-button>
+              <el-button class="filter-item" type="primary" :loading="Bloading" icon="el-icon-star-on" style="margin-left: 10px" @click="handleSelStar">收藏</el-button>
+              <el-button class="filter-item" type="primary" :loading="Bloading" icon="el-icon-download" style="margin-left: 10px" @click="handleExport">导出</el-button>
             </el-form-item>
           </el-col>
           <el-col>
             <el-collapse>
               <el-collapse-item>
-                <template slot="title" class="collapse-title">高级搜索</template>
+                <template slot="title" class="collapse-title">高级查询</template>
                 <div>
-                  <el-form-item label="采样时间：" :label-width="labelWidth">
-                    <el-col :span="11">
-                      <el-date-picker type="date" placeholder="起始日期" v-model="listQuery.timeStart" value-format="yyyy/MM/dd" style="width: 100%;"></el-date-picker>
+                  <el-row type="flex">
+                    <el-col :span="12">
+                      <el-form-item label="采样时间：" :label-width="labelWidth">
+                        <el-col :span="6">
+                          <el-form-item prop="timeStart">
+                            <el-date-picker v-model="listQuery.timeStart" type="date" placeholder="起始日期" value-format="yyyy/MM/dd" style="width: 100%;" />
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="1" align="center">-</el-col>
+                        <el-col :span="6">
+                          <el-form-item prop="timeEnd">
+                            <el-date-picker v-model="listQuery.timeEnd" type="date" placeholder="截止日期" value-format="yyyy/MM/dd" style="width: 100%;" />
+                          </el-form-item>
+                        </el-col>
+                      </el-form-item>
                     </el-col>
-                    <el-col :span="2" align="center">-</el-col>
-                    <el-col :span="11">
-                      <el-date-picker type="date" placeholder="截止日期" v-model="listQuery.timeEnd" value-format="yyyy/MM/dd" style="width: 100%;"></el-date-picker>
+                    <el-col :span="12">
+                      <el-form-item label="采样地点：" :label-width="labelWidth">
+                        <el-col :span="4">
+                          <el-input v-model="listQuery.NWlo" placeholder="NW经度" />
+                        </el-col>
+                        <el-col :span="4">
+                          <el-input v-model="listQuery.NWla" placeholder="NW纬度" />
+                        </el-col>
+                        <el-col :span="1" align="center">-</el-col>
+                        <el-col :span="4">
+                          <el-input v-model="listQuery.SElo" placeholder="SE经度" />
+                        </el-col>
+                        <el-col :span="4">
+                          <el-input v-model="listQuery.SEla" placeholder="SE纬度" />
+                        </el-col>
+                      </el-form-item>
                     </el-col>
-                  </el-form-item>
-                  <el-form-item label="采样地点：" :label-width="labelWidth">
-                    <el-col :span="5">
-                      <el-input placeholder="NW经度" v-model="listQuery.NWlo"></el-input>
-                    </el-col>
-                    <el-col :span="1" align="center">,</el-col>
-                    <el-col :span="5">
-                      <el-input placeholder="NW纬度" v-model="listQuery.NWla"></el-input>
-                    </el-col>
-                    <el-col :span="2" align="center">-</el-col>
-                    <el-col :span="5">
-                      <el-input placeholder="SE经度" v-model="listQuery.SElo"></el-input>
-                    </el-col>
-                    <el-col :span="1" align="center">,</el-col>
-                    <el-col :span="5">
-                      <el-input placeholder="SE纬度" v-model="listQuery.SEla"></el-input>
-                    </el-col>
-                  </el-form-item>
+                  </el-row>
                 </div>
               </el-collapse-item>
             </el-collapse>
@@ -66,6 +76,7 @@
     </div>
     <!--表格模块-->
     <el-table
+      ref="sampleTable"
       :key="tablekey"
       v-loading="listLoading"
       :data="list"
@@ -76,6 +87,7 @@
       :default-sort="defaultSort"
       @sort-change="sortChange"
     >
+      <el-table-column type="selection" />
       <el-table-column label="ID" prop="idsamples" sortable="custom" align="center" width="80" />
       <el-table-column label="样品名称" prop="name" />
       <el-table-column label="样品种类" prop="category" />
@@ -91,8 +103,9 @@
           <span>{{ comment | valueFilter }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作">
+      <el-table-column v-if="isAdmin" label="操作">
         <template slot-scope="{ row }">
+          <el-button type="text" icon="el-icon-star-off" style="color:#ffd700" @click="handleStar(row)" />
           <el-button type="text" icon="el-icon-edit" @click="handleUpdate(row)" />
           <el-button type="text" icon="el-icon-delete" style="color:#f56c6c" @click="handleDelete(row)" />
         </template>
@@ -114,6 +127,7 @@
 import Pagination from '../../components/Pagination'
 import { getCategory, listSample, deleteSample } from '../../api/sample'
 import { parseTime } from '../../utils'
+import store from '../.././store'
 
 export default {
   components: { Pagination },
@@ -131,13 +145,17 @@ export default {
       total: 0,
       listQuery: {},
       listLoading: true,
+      Bloading: false,
       categoryList: [],
       list: [],
-      defaultSort: {}
+      defaultSort: {},
+      labelWidth: '120px',
+      isAdmin: false
     }
   },
   created() {
     this.parseQuery()
+    this.checkRole()
   },
   mounted() {
     this.getList()
@@ -154,6 +172,12 @@ export default {
     next()
   },
   methods: {
+    async checkRole() {
+      const { role } = await store.dispatch('user/getInfo')
+      if (role === 'admin') {
+        this.isAdmin = true
+      }
+    },
     parseQuery() {
       const query = Object.assign({}, this.$route.query)
       let sort = '+idsamples'
@@ -221,13 +245,14 @@ export default {
       })
     },
     handleFilter() {
+      this.Bloading = true
       console.log('handleFilter', this.listQuery)
       this.listQuery.page = 1
       this.refresh()
+      this.Bloading = false
     },
     handleUpdate(row) {
       console.log('handleUpdate', row)
-      console.log(`/samples/updatesample/${row.idsamples}`)
       this.$router.push(`/samples/updatesample/${row.idsamples}`)
     },
     handleDelete(row) {
@@ -246,6 +271,52 @@ export default {
           this.handleFilter()
         })
       })
+    },
+    handleSelStar() {
+      this.Bloading = true
+      const sel = this.$refs.sampleTable.selection
+      sel.forEach(row => {
+        console.log(row.idsamples)
+      })
+      this.Bloading = false
+    },
+    handleStar(row) {
+      console.log(row)
+    },
+    handleExport() {
+      this.Bloading = true
+      console.log('export...')
+      const sel = this.$refs.sampleTable.selection
+      console.log(sel)
+      if (sel.length === 0) {
+        this.$message({
+          message: '至少选择一项样品信息',
+          type: 'warning'
+        })
+        this.Bloading = false
+        return false
+      }
+      import('@/vendor/Export2Excel').then(excel => {
+        const tHeader = ['ID', '样品名称', '样品种类', '采样时间', '采样地点', '样品状态', '备注']
+        const filterVal = ['idsamples', 'name', 'category', 'samplingtime', 'samplinglocation', 'state', 'comment']
+        const list = sel
+        const data = this.formatJson(filterVal, list)
+        excel.export_json_to_excel({
+          header: tHeader,
+          data,
+          filename: 'sample_export_' + parseTime(new Date())
+        })
+        this.Bloading = false
+      })
+    },
+    formatJson(filterVal, jsonData) {
+      return jsonData.map(v => filterVal.map(j => {
+        if (j === 'timestamp') {
+          return parseTime(v[j])
+        } else {
+          return v[j]
+        }
+      }))
     }
   }
 }

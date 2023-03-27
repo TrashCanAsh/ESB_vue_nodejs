@@ -1,9 +1,11 @@
 //处理样品信息相关的后端逻辑
 const express = require('express')
+const multer = require('multer')
 const Result = require('../models/Result')
 const Sample = require('../models/Sample')
 const sampleService = require('../service/sample')
 const { decoded } = require('../utils')
+const { UPLOAD_PATH } = require('../utils/constant')
 //express-validator，表单验证器，简化POST请求的参数验证
 const { body, validationResult } = require('express-validator')
 const boom = require('boom')
@@ -74,7 +76,7 @@ router.post(
     })
   }
 )
-//
+//获取某一样品信息
 router.get('/get', function(req, res, next) {
   const { idsamples } = req.query
   if (!idsamples) {
@@ -87,5 +89,29 @@ router.get('/get', function(req, res, next) {
     })
   }
 })
+//上传文件
+router.post('/upload', multer({ dest: `${UPLOAD_PATH}/sample` }).single('file'),
+  function(req, res, next) {
+    if (!req.file || req.file.length === 0) {
+      new Result('上传文件失败').fail(res)
+    } else {
+      console.log(req.file)
+      console.log(req.body)
+      new Result('上传文件成功').success(res)
+    }
+  }
+)
+//批量上传样品信息
+router.post('/multicreate', 
+  function(req, res, next) {
+    const decode = decoded(req)
+    if (decode && decode.username) {
+      req.body.username = decode.username
+    }
+    console.log(req.body)
+    const list = req.body
+    
+  }
+)
 
 module.exports = router

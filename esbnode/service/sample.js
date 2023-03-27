@@ -109,6 +109,18 @@ function insertSample(sample) {
     }
   })
 }
+function multiInsertSample(list) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let errmsg = ''
+      list.forEach(data => {
+        
+      })
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
 //
 function getSample(idsamples) {
   return new Promise(async (resolve, reject) => {
@@ -155,6 +167,7 @@ module.exports = {
   listSample,
   getSample,
   deleteSample,
+  multiInsertSample,
   insertSample,
   updateSample,
   queryLast

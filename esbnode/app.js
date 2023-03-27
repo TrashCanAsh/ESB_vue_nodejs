@@ -13,8 +13,8 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use('/', router)
 
-const privateKey = fs.readFileSync('./https/9346201_irontrashcan.top.key', 'utf8')
-const certificate = fs.readFileSync('./https/9346201_irontrashcan.top.pem', 'utf8')
+const privateKey = fs.readFileSync('./https/9567566_hias-esb.xyz.key', 'utf8')
+const certificate = fs.readFileSync('./https/9567566_hias-esb.xyz.pem', 'utf8')
 const credentials = { key: privateKey, cert: certificate }
 const httpsServer = https.createServer(credentials, app)
 const SSLPORT = 18082
