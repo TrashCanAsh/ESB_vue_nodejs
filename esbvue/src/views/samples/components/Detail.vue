@@ -229,7 +229,7 @@ export default {
       const onSuccess = (response) => {
         const { msg } = response
         this.$notify({
-          title: '操作成功',
+          title: '上传成功',
           message: msg,
           type: 'success',
           duration: 2000
