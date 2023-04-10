@@ -96,8 +96,12 @@
           <span>{{ samplingtime | timeFilter }}</span>
         </template>
       </el-table-column>
+      <el-table-column label="采样坐标" prop="samplinglna" />
       <el-table-column label="采样地点" prop="samplinglocation" />
+      <el-table-column label="湿重（g）" prop="wetweight" />
+      <el-table-column label="干重（g）" prop="dryweight" />
       <el-table-column label="样品状态" prop="state" />
+      <el-table-column label="样品存储位置" prop="locationofstorage" />
       <el-table-column label="备注" prop="comment">
         <template slot-scope="{ row: { comment }}">
           <span>{{ comment | valueFilter }}</span>

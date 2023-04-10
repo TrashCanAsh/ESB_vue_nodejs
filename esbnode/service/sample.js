@@ -35,7 +35,7 @@ async function listSample(query) {
     pageSize = 20
   } = query
   const offset = (page - 1) * pageSize
-  let sampleSql = `select idsamples, name, category, samplingtime, concat('(', longitude, ', ', latitude, ')') as samplinglocation, state, locationofstorage, comment from samples`
+  let sampleSql = `select idsamples, name, category, samplingtime, samplinglocation, concat('(', longitude, ', ', latitude, ')') as samplinglna, wetweight, dryweight, state, locationofstorage, comment from samples`
   let where = 'where'
   name && (where = db.andLike(where, 'name', name));
   category && (where = db.and(where, 'category', category));
@@ -109,19 +109,40 @@ function insertSample(sample) {
     }
   })
 }
-function multiInsertSample(list) {
+function multiInsertSample(sampleList) {
   return new Promise(async (resolve, reject) => {
     try {
-      let errmsg = ''
-      list.forEach(data => {
-        
-      })
+      let dbList = []
+      for(let i = 0; i < sampleList.length; i++) {
+        const sample = sampleList[i]
+        if (sample instanceof Sample) {
+          const result = await exists(sample)
+          if (result) {
+            reject(new Error(`编号 ${sample.idsamples} 样品已存在`))
+            break
+          } else {
+            if (sample.idsamples < 0) {
+              await queryLast('samples').then(result => {
+                sample.idsamples = +(result ? result.idsamples : 0) + 1
+              })
+            }
+            //DEBUG && console.log(sample)
+            dbList.push(sample.toDb())
+          }
+        } else {
+          reject(new Error(`添加的${sample.idsamples}号样品对象不合法`))
+          break
+        }
+      }
+      DEBUG && console.log(dbList)
+      await db.multiinsert(dbList, 'samples')
+      resolve()
     } catch (e) {
       reject(e)
     }
   })
 }
-//
+//获取单一样品信息
 function getSample(idsamples) {
   return new Promise(async (resolve, reject) => {
     const querySql = `select * from samples where idsamples='${idsamples}'`
@@ -133,7 +154,7 @@ function getSample(idsamples) {
     }
   })
 }
-//
+//更新样品信息
 function updateSample(sample) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -155,7 +176,7 @@ function updateSample(sample) {
     }
   })
 }
-
+//获取样品列表中最后一个样品的ID值
 function queryLast(tablename) {
   const sql = `select * from ${tablename} order by id${tablename} desc limit 1`
   return db.queryOne(sql)

@@ -108,9 +108,17 @@ router.post('/multicreate',
     if (decode && decode.username) {
       req.body.username = decode.username
     }
-    console.log(req.body)
+    let sampleList = []
     const list = req.body
-    
+    list.forEach(item => {
+      const sample = new Sample(item)
+      sampleList.push(sample)
+    });
+    sampleService.multiInsertSample(sampleList).then(() => {
+      new Result('批量添加样品信息成功').success(res)
+    }).catch(err => {
+      next(boom.badImplementation(err))
+    })
   }
 )
 

@@ -1,5 +1,6 @@
 const { env } = require('./env')
 const UPLOAD_PATH = env === 'dev' ? '/upload/ESBsample' : '/root/upload/ESBsample';
+const HTTPS_PATH = env === 'dev' ? '.' : '/root/ESB/ESB_vue_nodejs/esbnode';
 //全局参数列表
 module.exports = {
   CODE_ERROR: -1,
@@ -9,5 +10,6 @@ module.exports = {
   PWD_SALT: 'HIAS_ESB_test',//加盐
   PRIVATE_KEY: 'UniversityofChineseAcademyofSciences_HangzhouInstituteforAdvancedStudy_CollegeofEnvironment',//生成token使用的私人密钥
   JWT_EXPIRED: 60 * 60 * 4,//token失效时间（单位：秒）
-  UPLOAD_PATH
+  UPLOAD_PATH,
+  HTTPS_PATH
 }

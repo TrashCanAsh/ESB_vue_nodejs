@@ -1,7 +1,7 @@
 <template>
   <el-collapse v-model="activeNames" accordion>
     <el-collapse-item name="1" align="middle">
-      <template slot="title" class="collapse-title">新增单个样品信息</template>
+      <template slot="title" class="collapse-title">{{ isEdit ? '编辑样品信息' : '新增单个样品信息' }}</template>
       <div>
         <el-form ref="postForm" :model="postForm" :rules="postrules">
           <div class="detail-container">
@@ -22,7 +22,7 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="采样地点：" :label-width="labelWidth" required>
+                <el-form-item label="采样坐标：" :label-width="labelWidth" required>
                   <el-col :span="11">
                     <el-form-item prop="longitude">
                       <el-input ref="longitude" v-model="postForm.longitude" placeholder="经度" name="longitude" tabindex="4" />
@@ -36,9 +36,29 @@
                   </el-col>
                 </el-form-item>
               </el-col>
+              <el-col :span="12">
+                <el-form-item prop="samplinglocation" label="采样地点：" :label-width="labelWidth">
+                  <el-input ref="samplinglocation" v-model="postForm.samplinglocation" placeholder="采样地点" name="samplinglocation" tabindex="6" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item prop="locationofstorage" label="存储地点：" :label-width="labelWidth">
+                  <el-input ref="locationofstorage" v-model="postForm.locationofstorage" placeholder="存储地点" name="locationofstorage" tabindex="7" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item prop="wetweight" label="湿重：" :label-width="labelWidth">
+                  <el-input ref="wetweight" v-model="postForm.wetweight" placeholder="湿重" name="wetweight" tabindex="8" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item prop="dryweight" label="干重：" :label-width="labelWidth">
+                  <el-input ref="dryweight" v-model="postForm.dryweight" placeholder="干重" name="dryweight" tabindex="9" />
+                </el-form-item>
+              </el-col>
               <el-col>
                 <el-form-item prop="comment" label="备注：" :label-width="labelWidth">
-                  <el-input ref="comment" v-model="postForm.comment" type="textarea" :rows="5" name="comment" tabindex="6" />
+                  <el-input ref="comment" v-model="postForm.comment" type="textarea" :rows="5" name="comment" tabindex="10" />
                 </el-form-item>
               </el-col>
               <el-col>
@@ -78,8 +98,11 @@ const fields = {
   name: '样品名称',
   category: '样品种类',
   samplingtime: '采样时间',
+  samplinglocation: '采样地点',
   longitude: '经度',
-  latitude: '纬度'
+  latitude: '纬度',
+  wetweight: '湿重',
+  dryweight: '干重'
 }
 
 export default {
@@ -105,6 +128,16 @@ export default {
         callback()
       }
     }
+    const validateWeight = (rule, value, callback) => {
+      const reg = /(^[1-9]([0-9]+)?(\.[0-9]{1,3})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/
+      if (!value && value.length === 0) {
+        callback(new Error(fields[rule.field] + '必须填写'))
+      } else if (!reg.test(value)) {
+        return callback(new Error(fields[rule.field] + '必须为数字（最多3位小数）'))
+      } else {
+        callback()
+      }
+    }
     return {
       loading: false,
       postForm: {
@@ -113,6 +146,10 @@ export default {
         samplingtime: '',
         longitude: '',
         latitude: '',
+        samplinglocation: '',
+        locationofstorage: '',
+        wetweight: '',
+        dryweight: '',
         comment: ''
       },
       action: `${process.env.VUE_APP_BASE_API}/sample/upload`,
@@ -123,7 +160,10 @@ export default {
         category: [{ required: true, trigger: 'blur', validator: validateRequire }],
         samplingtime: [{ required: true, trigger: 'blur', validator: validateRequire }],
         longitude: [{ trigger: 'blur', validator: validateLocation }],
-        latitude: [{ trigger: 'blur', validator: validateLocation }]
+        latitude: [{ trigger: 'blur', validator: validateLocation }],
+        samplinglocation: [{ required: true, trigger: 'blur', validator: validateRequire }],
+        wetweight: [{ required: true, trigger: 'blur', validator: validateWeight }],
+        dryweight: [{ required: true, trigger: 'blur', validator: validateWeight }]
       },
       tableData: [],
       tableHeader: []
@@ -158,8 +198,8 @@ export default {
       })
     },
     setData(data) {
-      const { name, category, samplingtime, longitude, latitude, comment } = data
-      this.postForm = { ...this.postForm, name, category, samplingtime, longitude, latitude, comment }
+      const { name, category, samplingtime, longitude, latitude, samplinglocation, wetweight, dryweight, locationofstorage, comment } = data
+      this.postForm = { ...this.postForm, name, category, samplingtime, longitude, latitude, samplinglocation, wetweight, dryweight, locationofstorage, comment }
     },
     handleClear() {
       this.$refs.postForm.resetFields()
@@ -236,9 +276,7 @@ export default {
         })
         this.loading = false
       }
-      console.log('upload...')
       this.loading = true
-      console.log(this.tableData)
       multiCreateSample(this.tableData).then(response => {
         onSuccess(response)
       }).catch(() => {
